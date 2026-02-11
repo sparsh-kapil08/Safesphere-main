@@ -1,10 +1,15 @@
-<!DOCTYPE html>
+L<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SafeSphere - Your Safety Companion</title>
     <link rel="stylesheet" href="styles.css">
+    <!-- Leaflet Map Library -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+    <!-- Leaflet Heatmap Plugin -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-heatmap/1.0.4/leaflet-heatmap.min.js"></script>
 </head>
 <body>
     <!-- Navigation Bar -->
@@ -61,7 +66,7 @@
 
                 <div class="hero-buttons">
                     <button class="btn btn-danger btn-lg">
-                        Emergency Help
+                        Take a Safe Route
                     </button>
                     <button class="btn btn-secondary btn-lg">
                         Find Safe Places Nearby →
@@ -221,6 +226,6 @@
     <div id="toastContainer" class="toast-container"></div>
 
     <!-- Scripts -->
-    <script src="script.js"></script>
+    <script type="module" src="script.js"></script>
 </body>
 </html>
