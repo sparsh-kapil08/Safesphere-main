@@ -813,37 +813,22 @@ class ActionHandler {
                 }
             });
 
-            // Generate incident_id
-            const incidentId = `INC_${new Date().toISOString().replace(/[:\-T.Z]/g, '').slice(0, 14)}_${Math.floor(Math.random() * 10000)}`;
-
-            // Create incident data payload for /threats/report
-            const incidentData = {
-                incident_id: incidentId,
-                timestamp: new Date().toISOString(),
-                threat_level: 'CRITICAL', // Voice SOS is always critical
-                threat_score: 0.9, // High score for voice SOS
-                latitude: location.lat,
-                longitude: location.lng,
-                people_count: 0, // Unknown from voice
-                weapon_detected: false, // Default, can be updated
-                weapon_types: [],
-                behavior_summary: `Voice SOS Detected: "${voiceText}"`,
-                is_critical: true,
-                full_telemetry: {
-                    source: 'VOICE_SOS',
-                    voice_transcript: voiceText,
-                    accuracy: location.accuracy,
+            // Create SOS payload for /api/sos
+            const sosData = {
+                type: 'Voice SOS',
+                details: `Voice SOS Detected: "${voiceText}"`,
+                location: {
+                    lat: location.lat,
+                    lng: location.lng
                 },
-                source_id: 'client_voice_sos',
-                mode: 'client_voice',
-                location_accuracy_m: location.accuracy || 50, // Default accuracy
+                severity: 'CRITICAL'
             };
 
-            // Send to backend /threats/report endpoint
-            const response = await fetch(`${ML_API_URL}/threats/report`, {
+            // Send to backend /api/sos endpoint
+            const response = await fetch(`${ML_API_URL}/api/sos`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(incidentData)
+                body: JSON.stringify(sosData)
             });
 
             const result = await response.json();
