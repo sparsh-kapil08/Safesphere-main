@@ -795,6 +795,121 @@ class ActionHandler {
             Toast.show('❌ Failed to send SOS: ' + error.message, 'error', 5000);
         }
     }
+
+    static async sendVoiceSOS(voiceText) {
+        Toast.show('🚨 Voice SOS detected! Sending alert...', 'error', 5000);
+        console.log(`🚨 Voice SOS detected! Sending alert for text: "${voiceText}"`);
+        
+        try {
+            // Get location
+            const location = await new Promise((resolve) => {
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(
+                        (pos) => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude, accuracy: pos.coords.accuracy }),
+                        () => resolve({ lat: 0, lng: 0, accuracy: 0 }) // Fallback
+                    );
+                } else {
+                    resolve({ lat: 0, lng: 0, accuracy: 0 }); // Fallback
+                }
+            });
+
+            // Create incident data payload for /threats/report
+            const incidentData = {
+                timestamp: new Date().toISOString(),
+                threat_level: 'CRITICAL', // Voice SOS is always critical
+                threat_score: 0.9, // High score for voice SOS
+                latitude: location.lat,
+                longitude: location.lng,
+                people_count: 0, // Unknown from voice
+                weapon_detected: false, // Default, can be updated
+                weapon_types: [],
+                behavior_summary: `Voice SOS Detected: "${voiceText}"`,
+                is_critical: true,
+                full_telemetry: {
+                    source: 'VOICE_SOS',
+                    voice_transcript: voiceText,
+                    accuracy: location.accuracy,
+                },
+                source_id: 'client_voice_sos',
+                mode: 'client_voice',
+                location_accuracy_m: location.accuracy || 50, // Default accuracy
+            };
+
+            // Send to backend /threats/report endpoint
+            const response = await fetch(`${ML_API_URL}/threats/report`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(incidentData)
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                Toast.show(`✅ Voice SOS Alert sent! Incident ID: ${result.incident_id}`, 'success', 5000);
+                console.log('Voice SOS Response:', result);
+            } else {
+                Toast.show(`⚠️ SOS sent, but backend reported an error: ${result.detail || 'Unknown error'}`, 'error', 5000);
+                console.error('Backend error on voice SOS:', result);
+            }
+        } catch (error) {
+            console.error('Error sending Voice SOS:', error);
+            Toast.show('❌ Failed to send Voice SOS: ' + error.message, 'error', 5000);
+        }
+    }
+}
+
+// ============================================
+// VOICE SECURITY AI
+// ============================================
+
+class VoiceSecurity {
+    static init() {
+        if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+            console.warn('Voice SOS: Web Speech API not supported in this browser.');
+            return;
+        }
+
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const recognition = new SpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = false;
+        recognition.lang = 'en-US';
+
+        recognition.onstart = () => {
+            console.log('🎙️ Voice SOS: Microphone active. Listening for keywords (e.g., "help me")...');
+            Toast.show('🎙️ Voice Security Active', 'info');
+        };
+
+        recognition.onresult = (event) => {
+            const last = event.results.length - 1;
+            const text = event.results[last][0].transcript.toLowerCase().trim();
+            console.log(`👂 Voice SOS Heard: "${text}"`);
+
+            if (text.includes('help me') || text.includes('save me') || text.includes('emergency') || text.includes('threatening')) {
+                console.warn(`🚨 Voice SOS: Threat detected ("${text}")! Sending alert directly...`);
+                ActionHandler.sendVoiceSOS(text);
+            }
+        };
+
+        recognition.onerror = (event) => {
+            if (event.error === 'no-speech') return;
+            console.error('Voice SOS Error:', event.error);
+            if (event.error === 'not-allowed') {
+                console.warn('Voice SOS: Microphone permission denied. Please enable microphone access.');
+                Toast.show('⚠️ Enable microphone for Voice SOS', 'warning');
+            }
+        };
+
+        // Attempt to start immediately
+        console.log('🎙️ Voice SOS: Initializing...');
+        try {
+            recognition.start();
+        } catch (e) {
+            console.error('Voice SOS: Failed to start:', e);
+        }
+        
+        window.voiceSecurity = recognition;
+    }
 }
 
 // ============================================
@@ -857,6 +972,10 @@ try {
     // Initialize responsive menu
     MenuHandler.init();
     console.log('✅ Menu ready');
+
+    // Initialize Voice Security
+    VoiceSecurity.init();
+    console.log('✅ Voice Security ready');
 
     // Ensure an application container exists for role pages
     if (!document.getElementById('app')) {

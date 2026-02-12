@@ -100,8 +100,8 @@ app = FastAPI(
 )
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=False,
+    allow_origin_regex=".*",  # Allows all origins (including dynamic Codespaces URLs)
+    allow_credentials=True,   # Allows cookies/auth headers
     allow_methods=["*"],
     allow_headers=["*"],
 )
