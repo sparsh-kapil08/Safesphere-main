@@ -866,7 +866,6 @@ class VoiceSecurity {
 
         recognition.onstart = () => {
             console.log('🎙️ Voice SOS: Microphone active. Listening for keywords (e.g., "help me")...');
-            Toast.show('🎙️ Voice Security Active', 'info');
         };
 
         recognition.onresult = (event) => {
@@ -1751,6 +1750,18 @@ try {
                 ];
             }
 
+            // Fetch total incidents count
+            let totalIncidentsCount = 45;
+            try {
+                const response = await fetch(`${ML_API_URL}/incidents?limit=1000`);
+                const data = await response.json();
+                if (data.count !== undefined) {
+                    totalIncidentsCount = data.count;
+                }
+            } catch (error) {
+                console.error('Failed to fetch total incidents count:', error);
+            }
+
             const recentLogs = [
                 { id: 101, type: 'SOS Alert', location: 'Broadway St', time: '10:42 AM', details: 'User reported feeling unsafe. Patrol unit #42 responded.', status: 'Resolved' },
                 { id: 102, type: 'Geofence Breach', location: 'Times Square', time: '09:15 AM', details: 'Child safety watch exited safe zone. Parent notified.', status: 'Resolved' },
@@ -1759,7 +1770,7 @@ try {
 
             const stats = {
                 activeUnits: 12,
-                totalIncidents: 45,
+                totalIncidents: totalIncidentsCount,
                 avgResponse: '4m 30s'
             };
 
