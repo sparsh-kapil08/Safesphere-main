@@ -813,8 +813,12 @@ class ActionHandler {
                 }
             });
 
+            // Generate incident_id
+            const incidentId = `INC_${new Date().toISOString().replace(/[:\-T.Z]/g, '').slice(0, 14)}_${Math.floor(Math.random() * 10000)}`;
+
             // Create incident data payload for /threats/report
             const incidentData = {
+                incident_id: incidentId,
                 timestamp: new Date().toISOString(),
                 threat_level: 'CRITICAL', // Voice SOS is always critical
                 threat_score: 0.9, // High score for voice SOS

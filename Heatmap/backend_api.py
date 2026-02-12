@@ -56,7 +56,7 @@ SCREENSHOT_DIR.mkdir(parents=True, exist_ok=True)
 
 # ----- Models -----
 class ThreatIncident(BaseModel):
-    incident_id: str
+    incident_id: Optional[str] = None
     timestamp: str
     threat_level: str  # LOW, MEDIUM, HIGH, CRITICAL
     threat_score: float
