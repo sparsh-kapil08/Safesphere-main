@@ -889,6 +889,15 @@ class VoiceSecurity {
             }
         };
 
+        recognition.onend = () => {
+            console.log('🎙️ Voice SOS: Session ended. Restarting...');
+            try {
+                recognition.start();
+            } catch (e) {
+                // Ignore errors if already started
+            }
+        };
+
         // Attempt to start immediately
         console.log('🎙️ Voice SOS: Initializing...');
         try {

@@ -2,6 +2,7 @@ import sys
 import os
 import time
 import requests
+import threading
 
 # Ensure Heatmap root is in sys.path to import backend_api
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -11,6 +12,17 @@ if heatmap_root not in sys.path:
 
 from engines.voice_ai.inference.speech_recognizer import VoiceAIEngine
 
+
+def send_sos_background(text):
+    try:
+        requests.post("http://localhost:8000/api/sos", json={
+            "type": "Voice SOS",
+            "details": f"Voice SOS Detected: '{text}'",
+            "severity": "CRITICAL"
+        })
+        print("SOS call sent via API.")
+    except Exception as e:
+        print(f"Failed to send SOS via API: {e}")
 
 def main():
     engine = VoiceAIEngine()
@@ -38,15 +50,7 @@ def main():
                     print(f"🚨 Suspicious activity detected: '{text}'")
                     
                     # Send instant SOS call
-                    try:
-                        requests.post("http://localhost:8000/api/sos", json={
-                            "type": "Voice SOS",
-                            "details": f"Voice SOS Detected: '{text}'",
-                            "severity": "CRITICAL"
-                        })
-                        print("SOS call sent via API.")
-                    except Exception as e:
-                        print(f"Failed to send SOS via API: {e}")
+                    threading.Thread(target=send_sos_background, args=(text,)).start()
                         
         except KeyboardInterrupt:
             print("Stopping Voice AI...")
