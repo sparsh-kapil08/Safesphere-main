@@ -490,7 +490,9 @@ class ActionHandler {
 
         // SOS Button
         const sosButton = document.getElementById('sosButton');
-        sosButton.addEventListener('click', () => ActionHandler.triggerSOS());
+        if (sosButton) {
+            sosButton.addEventListener('click', () => ActionHandler.triggerSOS());
+        }
     }
 
     static handleAction(action) {
@@ -933,7 +935,6 @@ class SmoothScroll {
 // ============================================
 // RESPONSIVE MENU
 // ============================================
-
 class MenuHandler {
     static init() {
         const menuToggle = document.querySelector('.menu-toggle');
@@ -2427,6 +2428,12 @@ try {
                 guardian: GuardianPage,
                 police: PolicePage
             };
+
+            // Manage visibility of landing page sections based on role
+            const landingSections = document.querySelectorAll('.hero, .emergency-actions, .safety-features, .resources');
+            landingSections.forEach(section => {
+                section.style.display = (role === 'user') ? '' : 'none';
+            });
 
             const page = pages[role];
             if (page && typeof page.init === 'function') {
