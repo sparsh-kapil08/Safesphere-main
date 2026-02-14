@@ -2449,6 +2449,17 @@ try {
     window.setRole = (r) => {
         localStorage.setItem('safesphere_role', r);
         document.body.dataset.role = r;
+
+        const app = document.getElementById('app');
+        const heroSection = document.querySelector('.hero') || document.querySelector('.heroes');
+        if (app && heroSection) {
+            if (r === 'user') {
+                heroSection.parentNode.insertBefore(app, heroSection.nextSibling);
+            } else {
+                document.body.appendChild(app);
+            }
+        }
+
         loadRolePage(r, { role: r });
     };
 
