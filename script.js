@@ -2485,7 +2485,7 @@ try {
             select.appendChild(opt);
         });
 
-        const currentRole = document.body.dataset.role || localStorage.getItem('safesphere_role') || 'user';
+        const currentRole = 'user';
         select.value = currentRole;
 
         select.addEventListener('change', (e) => {
@@ -2501,7 +2501,7 @@ try {
     })();
 
     // Determine role: prefer body[data-role] then localStorage, default 'user'
-    const role = document.body.dataset.role || localStorage.getItem('safesphere_role') || 'user';
+    const role = 'user';
     loadRolePage(role, { role });
 
     console.log('✅ SafeSphere online!');
