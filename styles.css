@@ -863,9 +863,13 @@ body[data-role="police"] .main-content {
     gap: var(--spacing-3);
     width: auto;
     min-width: 3.5rem;
+    pointer-events: none;
 }
 
 .chat-trigger {
+    z-index: var(--z-chat);
+    bottom: var(--spacing-6);
+    right: var(--spacing-6);
     width: 3.5rem;
     height: 3.5rem;
     border-radius: 50%;
@@ -3869,4 +3873,10 @@ body[data-role="police"] .main-content {
     .threat-count {
         font-size: 12px;
     }
+}
+#chatdiv{
+    pointer-events: none;
+}
+#chatdiv .chat-trigger{
+    pointer-events: auto;
 }

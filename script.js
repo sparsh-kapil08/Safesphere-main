@@ -98,12 +98,12 @@ class ChatWidget {
         this.widget = document.querySelector('.chat-widget');
         this.trigger = document.getElementById('chatTrigger');
         this.container = document.getElementById('chatContainer');
+        this.widget = document.getElementById('chatdiv');
         this.closeBtn = document.getElementById('chatClose');
         this.messagesContainer = document.getElementById('chatMessages');
         this.inputField = document.getElementById('chatInput');
         this.sendBtn = document.getElementById('chatSend');
-        this.isOpen = false;
-
+        
         // Verify all elements exist
         if (!this.trigger || !this.container || !this.closeBtn || !this.messagesContainer) {
             console.error('❌ Chat Widget: Missing required elements');
@@ -175,6 +175,7 @@ class ChatWidget {
 
     toggleChat() {
         if (this.isOpen) {
+
             this.closeChat();
         } else {
             this.openChat();
