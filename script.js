@@ -1469,7 +1469,7 @@ try {
                                 const colorIndex = Math.floor(intensity * (colors.length - 1));
                                 
                                 L.circle([zone.lat, zone.lng], {
-                                    radius: 100 + (intensity * 200),
+                                    radius: 100 + (intensity * 50),
                                     fillColor: colors[colorIndex],
                                     color: colors[colorIndex],
                                     weight: 1,
@@ -1717,6 +1717,8 @@ try {
 
     // POLICE DASHBOARD
     const PolicePage = {
+        updateInterval: null,
+
         async init(params = {}) {
             const app = document.getElementById('app');
             
@@ -1963,6 +1965,9 @@ try {
 
             // Initialize the map
             this.initPoliceMap();
+
+            // Start live updates
+            this.startLiveUpdates();
         },
 
         async initPoliceMap() {
@@ -2030,6 +2035,35 @@ try {
             } catch (error) {
                 console.error('Failed to load incidents for police map:', error);
                 Toast.show('Could not load incident data.', 'error');
+            }
+        },
+
+        startLiveUpdates() {
+            if (this.updateInterval) clearInterval(this.updateInterval);
+            this.updateInterval = setInterval(() => this.updateDashboard(), 5000);
+        },
+
+        async updateDashboard() {
+            try {
+                // Update Alerts Count
+                const alertsRes = await fetch(`${ML_API_URL}/alerts/active`);
+                const alertsData = await alertsRes.json();
+                
+                if (alertsData.alerts) {
+                    const countSpan = document.querySelector('.alerts-count');
+                    if (countSpan) countSpan.textContent = `${alertsData.alerts.length} Active`;
+                }
+
+                // Update Total Incidents Stat
+                const incidentsRes = await fetch(`${ML_API_URL}/incidents?limit=1000`);
+                const incidentsData = await incidentsRes.json();
+                if (incidentsData.count !== undefined) {
+                    const statValues = document.querySelectorAll('.stat-value');
+                    // Total incidents is the second stat card (index 1)
+                    if (statValues[1]) statValues[1].textContent = incidentsData.count;
+                }
+            } catch (e) {
+                console.error('Dashboard update error:', e);
             }
         },
 
@@ -2415,6 +2449,7 @@ try {
         },
 
         teardown() {
+            if (this.updateInterval) clearInterval(this.updateInterval);
             const app = document.getElementById('app');
             if (app) app.innerHTML = '';
         }
