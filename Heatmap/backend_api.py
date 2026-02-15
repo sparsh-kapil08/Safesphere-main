@@ -625,6 +625,36 @@ async def calculate_safe_route(req: RouteRequest):
             routes_analyzed = len(routes)
             safe_count = len(safe_routes)
         else:
+            # Check if start location is inside a threat zone
+            # If user is already in danger, just give them the fastest route out (normal OSRM route)
+            start_in_threat = False
+            for threat in nearby_threats:
+                d = _haversine_km(req.start_lat, req.start_lng, threat["latitude"], threat["longitude"])
+                # Check if within 100m of threat (slightly larger than the 50m strict check)
+                if d <= 0.1:
+                    start_in_threat = True
+                    break
+            
+            if start_in_threat and unsafe_routes:
+                print("⚠️ User starting in threat zone - defaulting to normal route")
+                best_route = unsafe_routes[0]
+                return {
+                    "success": True,
+                    "routing_mode": "EMERGENCY_EXIT",
+                    "route": {
+                        "geometry": best_route["geometry"],
+                        "distance": best_route["distance"],
+                        "duration": best_route["duration"],
+                        "is_safe": False,
+                        "safety_score": 0.1
+                    },
+                    "routes_analyzed": len(routes),
+                    "safe_routes_found": 0,
+                    "safety_guarantee": "⚠️ Starting in threat zone. Fastest route selected.",
+                    "threat_details": best_route["threat_info"],
+                    "threats_near_route": nearby_threats
+                }
+
             # No fully safe routes found — attempt to create detours around nearby threats
             # Define threat radii and safety buffer (same values used in _calculate_route_risk)
             threat_radii_map = {
@@ -1011,33 +1041,29 @@ def _process_video_through_threat_cv(video_path: str, incident_id: str) -> Optio
                 break
             
             try:
-                # Detect persons
-                persons = threat_engine.detector.detect(frame)
-                if persons:
-                    people_detected = max(people_detected, len(persons))
+                # Use the engine's internal processing pipeline
+                result = threat_engine._process_frame(frame, frame_count)
                 
-                # Detect weapons
-                weapons = threat_engine.weapon.detect(frame)
-                if weapons:
+                # Extract data from result
+                threat_score = result.get("threat_score", 0.0)
+                classification = result.get("classification", {})
+                weapon_result = result.get("weapon_result", {})
+                telemetry = result.get("telemetry", {})
+                
+                # Update aggregates
+                threat_scores.append(threat_score)
+                max_threat_score = max(max_threat_score, threat_score)
+                
+                people_count = telemetry.get("detection", {}).get("people_count", 0)
+                people_detected = max(people_detected, people_count)
+                
+                if weapon_result.get("has_weapon"):
                     weapon_found = True
                 
-                # Analyze behavior
-                if persons:
-                    behavior_result = threat_engine.behavior.analyze(frame, persons)
-                    if behavior_result and behavior_result.get("risk", 0) > 0:
-                        most_severe_behavior = behavior_result.get("summary", "Suspicious activity detected")
-                
-                # Calculate threat score
-                threat_score = threat_engine.threat_scorer.score(
-                    people_detected,
-                    weapon_found,
-                    frame,
-                    persons if persons else []
-                )
-                
-                if threat_score:
-                    threat_scores.append(threat_score)
-                    max_threat_score = max(max_threat_score, threat_score)
+                # Update behavior summary if risk is high
+                risk_reason = classification.get("reasoning", [])
+                if risk_reason:
+                    most_severe_behavior = risk_reason[0]
                 
                 frame_count += 1
                 
@@ -1114,7 +1140,7 @@ async def list_incidents(limit: int = 100, threat_level: Optional[str] = None):
 async def get_active_alerts(limit: int = 50):
     """Get active SOS alerts from Supabase for Police Dashboard."""
     try:
-        response = supabase.table("sos_alerts").select("*").eq("status", "active").order("created_at", desc=True).limit(limit).execute()
+        response = supabase.table("sos_alerts").select("*").order("created_at", desc=True).limit(limit).execute()
         return {"count": len(response.data), "alerts": response.data}
     except Exception as e:
         print(f"❌ Error getting active alerts: {e}")
