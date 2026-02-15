@@ -4,10 +4,11 @@ torchaudio
 sounddevice
 numpy
 scipy
-opencv-python
+opencv-python-headless
 networkx
 fastapi
 uvicorn
 supabase
 dotenv
 python-multipart
+ultralytics
