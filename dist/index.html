@@ -1,0 +1,228 @@
+L<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SafeSphere - Your Safety Companion</title>
+    <!-- Leaflet Map Library -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+    <!-- Leaflet Heatmap Plugin -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-heatmap/1.0.4/leaflet-heatmap.min.js"></script>
+    hidesos{
+        display: none;
+    }
+  <script type="module" crossorigin src="/assets/index-BsXvIlde.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-DaShGu7p.css">
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <a href="#" class="navbar-logo">
+                <div class="logo-icon">🛡️</div>
+                <span>SafeSphere</span>
+            </a>
+            
+            <div class="navbar-links">
+                <a href="#home" class="nav-link">Home</a>
+                <a href="#features" class="nav-link">Safety Tips</a>
+                <a href="#resources" class="nav-link">Resources</a>
+                <a href="#contact" class="nav-link">Contact</a>
+            </div>
+
+            <button class="profile-btn">
+                <span class="profile-icon">👤</span>
+                <span class="profile-text">My Profile</span>
+            </button>
+
+            <button class="menu-toggle" id="menuToggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Background Blobs -->
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+
+        <!-- Hero Section -->
+        <section class="hero" id="home">
+            <div class="hero-content">
+                <div class="hero-badge">
+                    <span class="badge-icon">❤️</span>
+                    <span class="badge-text">Your Safety Companion</span>
+                </div>
+                
+                <h1 class="hero-title">
+                    Your Safety. Your Strength.
+                    <br>
+                    <span class="highlight">Always With You.</span>
+                </h1>
+                
+                <p class="hero-description">
+                    Empowering women with real-time safety intelligence, proactive threat detection, and instant emergency response.
+                </p>
+
+                <div class="hero-buttons">
+                </div>
+            </div>
+
+            <div class="hero-illustration">
+                <div class="illustration-blob"></div>
+                <div class="illustration-card">
+                    <div class="icon-grid">
+                        <div class="icon-box accent-primary">🛡️</div>
+                        <div class="icon-box accent-secondary">👥</div>
+                        <div class="icon-box accent-orange">📍</div>
+                        <div class="icon-box accent-green">☎️</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <div id="app"></div>
+        <!-- SOS Section -->
+        <section class="sos-section">
+            <div class="sos-divider"></div>
+            <div class="sos-container">
+                <button class="sos-button" id="sosButton" class="hidesos">
+                    <span class="sos-text">SOS</span>
+                    <span class="sos-subtext">Tap to Alert</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- Emergency Actions -->
+        <section class="emergency-actions">
+            <div class="section-header">
+                <h2>Emergency Actions</h2>
+                <div class="divider"></div>
+            </div>
+
+            <div class="actions-grid">
+                <div class="action-card" data-action="call">
+                    <div class="action-icon accent-red">☎️</div>
+                    <p class="action-title">Call Emergency</p>
+                </div>
+                <div class="action-card" data-action="location">
+                    <div class="action-icon accent-blue">📍</div>
+                    <p class="action-title">Share Location</p>
+                </div>
+                <div class="action-card" data-action="voice">
+                    <div class="action-icon accent-orange">🎤</div>
+                    <p class="action-title">Voice SOS</p>
+                </div>
+                <div class="action-card" data-action="fake-call">
+                    <div class="action-icon accent-purple">☎️</div>
+                    <p class="action-title">Fake Call</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Safety Features -->
+        <section class="safety-features" id="features">
+            <div class="section-header">
+                <h2>Safety Features</h2>
+                <div class="divider"></div>
+            </div>
+
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon accent-primary">🧭</div>
+                    <h3>Safe Route</h3>
+                    <p>AI-recommended safest paths</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon accent-secondary">🚨</div>
+                    <h3>Nearby Help</h3>
+                    <p>Police stations & hospitals</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon accent-orange">👥</div>
+                    <h3>Community Alerts</h3>
+                    <p>Real-time danger updates</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon accent-green">📹</div>
+                    <h3>Record Evidence</h3>
+                    <p>Securely cloud-synced</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Resources Section -->
+        <section class="resources" id="resources">
+            <h2>Explore Our Resources</h2>
+            
+            <div class="resources-grid">
+                <div class="resource-card">
+                    <div class="resource-image bg-orange"></div>
+                    <div class="resource-content">
+                        <h3>Self-Defense Tips</h3>
+                        <a href="#" class="read-more">Read More →</a>
+                    </div>
+                </div>
+                <div class="resource-card">
+                    <div class="resource-image bg-blue"></div>
+                    <div class="resource-content">
+                        <h3>Know Your Rights</h3>
+                        <a href="#" class="read-more">Read More →</a>
+                    </div>
+                </div>
+                <div class="resource-card">
+                    <div class="resource-image bg-pink"></div>
+                    <div class="resource-content">
+                        <h3>Inspiring Stories</h3>
+                        <a href="#" class="read-more">Read More →</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Chat Widget -->
+
+    <div class="chat-widget" id="chatdiv">
+        <button class="chat-trigger" id="chatTrigger">
+            <span class="chat-icon">💬</span>
+        </button>
+        <div class="chat-container" id="chatContainer">
+            <div class="chat-header">
+                <div class="chat-header-content">
+                    <span class="chat-avatar">🤖</span>
+                    <span class="chat-title">Sakhi AI Assistant</span>
+                </div>
+                <button class="chat-close" id="chatClose">✕</button>
+            </div>
+
+            <div class="chat-messages" id="chatMessages">
+                <div class="message bot-message">
+                    <p>Namaste! I'm Sakhi. How can I assist you today?</p>
+                </div>
+            </div>
+
+            <div class="chat-input-area">
+                <div class="quick-prompts">
+                    <button class="quick-prompt" data-prompt="I feel unsafe">I feel unsafe</button>
+                    <button class="quick-prompt" data-prompt="Someone is following me">Someone is following me</button>
+                    <button class="quick-prompt" data-prompt="Legal Help">Legal Help</button>
+                </div>
+
+                <div class="chat-input">
+                    <input type="text" id="chatInput" placeholder="Type a message..." />
+                    <button class="chat-send" id="chatSend">📤</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <!-- Scripts -->
+</body>
+</html>
