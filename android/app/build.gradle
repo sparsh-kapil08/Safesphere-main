@@ -3,6 +3,17 @@ apply plugin: 'com.android.application'
 android {
     namespace = "com.safesphere.app"
     compileSdk = rootProject.ext.compileSdkVersion
+
+    signingConfigs {
+        release {
+            storeFile file("C:/Users/mukes/keystores/safesphere_upload.jks") // <--- Updated path
+            storePassword project.hasProperty('MY_UPLOAD_STORE_PASSWORD') ? property('MY_UPLOAD_STORE_PASSWORD') : ""
+            keyAlias 'safespherekey' // <--- Updated alias
+            keyPassword project.hasProperty('MY_UPLOAD_KEY_PASSWORD') ? property('MY_UPLOAD_KEY_PASSWORD') : ""
+            storeType 'pkcs12'
+        }
+    }
+
     defaultConfig {
         applicationId "com.safesphere.app"
         minSdkVersion rootProject.ext.minSdkVersion
@@ -17,9 +28,25 @@ android {
         }
     }
     buildTypes {
+        debug {
+            signingConfig signingConfigs.release
+        }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
+        }
+    }
+
+    // Diagnostic: Print the resolved storeFile for the release build type
+    afterEvaluate {
+        android.applicationVariants.all { variant ->
+            if (variant.buildType.name == "release") {
+                def signingConfig = variant.signingConfig
+                if (signingConfig != null && signingConfig.storeFile != null) {
+                    println "[DIAGNOSTIC] Release Build uses storeFile: " + signingConfig.storeFile.absolutePath
+                }
+            }
         }
     }
 }
