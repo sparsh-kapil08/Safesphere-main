@@ -1,2 +1,47 @@
+# Environment variables
 .env
 ./.env
+
+# Dependencies
+node_modules/
+package-lock.json
+
+# Build outputs
+dist/
+build/
+*.apk
+*.aab
+
+# Android build
+android/app/build/
+android/build/
+android/.gradle/
+android/capacitor-cordova-android-plugins/build/
+android/local.properties
+android/.cxx/
+android/.idea/
+*.iml
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Backend cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Temporary files
+.tmp/
+temp/
