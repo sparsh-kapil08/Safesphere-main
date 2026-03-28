@@ -85,6 +85,69 @@ style.textContent = `
         animation: guardian-ping 1.5s ease-out infinite;
     }
     @keyframes guardian-ping { 0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0.8; } 100% { transform: translate(-50%, -50%) scale(2); opacity: 0; } }
+    .auth-shell {
+        min-height: 60vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+    }
+    .auth-card {
+        width: 100%;
+        max-width: 460px;
+        background: #ffffff;
+        border-radius: 16px;
+        box-shadow: 0 20px 50px rgba(15, 23, 42, 0.16);
+        border: 1px solid #e2e8f0;
+        padding: 22px;
+    }
+    .auth-tabs {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin-bottom: 14px;
+    }
+    .auth-tab {
+        border: 1px solid #cbd5e1;
+        background: #f8fafc;
+        color: #0f172a;
+        border-radius: 10px;
+        padding: 10px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+    .auth-tab.active {
+        border-color: #0ea5e9;
+        background: #e0f2fe;
+        color: #0c4a6e;
+    }
+    .auth-form {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    .auth-form input,
+    .auth-form select {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #cbd5e1;
+        border-radius: 10px;
+        font-size: 14px;
+        background: #fff;
+    }
+    .auth-submit {
+        border: 0;
+        border-radius: 10px;
+        padding: 12px;
+        font-weight: 700;
+        color: #fff;
+        background: linear-gradient(135deg, #0284c7, #0ea5e9);
+        cursor: pointer;
+    }
+    .auth-submit:disabled {
+        opacity: 0.7;
+        cursor: wait;
+    }
 `;
 document.head.appendChild(style);
 
@@ -491,7 +554,9 @@ class ActionHandler {
 
         // SOS Button
         const sosButton = document.getElementById('sosButton');
-        sosButton.addEventListener('click', () => ActionHandler.triggerSOS());
+        if (sosButton) {
+            sosButton.addEventListener('click', () => ActionHandler.triggerSOS());
+        }
     }
 
     static handleAction(action) {
@@ -972,8 +1037,6 @@ try {
     console.log('✅ Menu ready');
 
     // Initialize Voice Security
-    VoiceSecurity.init();
-    console.log('✅ Voice Security ready');
 
     // Ensure an application container exists for role pages
     if (!document.getElementById('app')) {
@@ -990,7 +1053,13 @@ try {
     const UserPage = {
         init(params = {}) {
             const app = document.getElementById('app');
-            
+            const currentProfile = window.__safesphere_profile || null;
+            const authUser = window.__safesphere_auth_user || null;
+            const profileName = currentProfile && currentProfile.full_name ? currentProfile.full_name.trim() : '';
+            const metaName = authUser && authUser.user_metadata && authUser.user_metadata.full_name ? authUser.user_metadata.full_name.trim() : '';
+            const emailPrefix = authUser && authUser.email ? authUser.email.split('@')[0] : '';
+            const greetingName = (profileName || metaName || emailPrefix || 'User').replace(/[<>]/g, '');
+            const Role = window.__safesphere_role || 'user';
             let sosActive = false;
             let threatDetected = false;
 
@@ -1022,12 +1091,39 @@ try {
                         <div class="bg-blob bg-blob-1"></div>
                         <div class="bg-blob bg-blob-2"></div>
                     </div>
+                            <!-- Emergency Actions -->
+        <section class="emergency-actions">
+            <div class="section-header">
+                <h2>Emergency Actions</h2>
+                <div class="divider"></div>
+            </div>
+
+            <div class="actions-grid">
+                <div class="action-card" data-action="call">
+                    <div class="action-icon accent-red">☎️</div>
+                    <p class="action-title">Call Emergency</p>
+                </div>
+                <div class="action-card" data-action="location">
+                    <div class="action-icon accent-blue">📍</div>
+                    <p class="action-title">Share Location</p>
+                </div>
+                <div class="action-card" data-action="voice">
+                    <div class="action-icon accent-orange">🎤</div>
+                    <p class="action-title">Voice SOS</p>
+                </div>
+                <div class="action-card" data-action="fake-call">
+                    <div class="action-icon accent-purple">☎️</div>
+                    <p class="action-title">Fake Call</p>
+                </div>
+            </div>
+        </section>
+
 
                     <!-- Main Content -->
                     <main class="user-main-content">
                         <!-- Greeting Section -->
                         <div class="user-greeting">
-                            <h1>Hi, <span class="text-highlight">Jessica</span></h1>
+                            <h1>Hi, <span class="text-highlight">${greetingName}</span></h1>
                             <p>You are in a <span class="safe-zone-badge">Safe Zone</span></p>
                         </div>
 
@@ -2455,6 +2551,25 @@ try {
         }
     };
 
+    const APP_ROLES = ['user', 'guardian', 'police'];
+    let roleSwitcher = null;
+
+    function normalizeRole(role) {
+        return APP_ROLES.includes(role) ? role : 'user';
+    }
+
+    function ensureAppContainerPlacement(role) {
+        const app = document.getElementById('app');
+        const heroSection = document.querySelector('.hero') || document.querySelector('.heroes');
+        if (!app) return;
+
+        if (heroSection && role === 'user') {
+            heroSection.parentNode.insertBefore(app, heroSection.nextSibling);
+            return;
+        }
+        document.body.appendChild(app);
+    }
+
     // Role-aware page loader (inline pages)
     async function loadRolePage(role = 'user', params = {}) {
         try {
@@ -2475,70 +2590,314 @@ try {
             } else {
                 console.warn(`Role page for '${role}' not found`);
             }
+            if (role == 'user'){
+                VoiceSecurity.init();
+                console.log('✅ Voice Security ready');
+            }
         } catch (err) {
             console.error('Failed to load role page', role, err);
         }
     }
 
-    // Expose loader and setter globally for console/tools
-    window.loadRolePage = loadRolePage;
-    window.setRole = (r) => {
-        localStorage.setItem('safesphere_role', r);
-        document.body.dataset.role = r;
+    async function fetchOrCreateProfile(user) {
+        try {
+            const { data: profile, error } = await supabase
+                .from('profiles')
+                .select('user_id, email, full_name, role')
+                .eq('user_id', user.id)
+                .maybeSingle();
 
-        const app = document.getElementById('app');
-        const heroSection = document.querySelector('.hero') || document.querySelector('.heroes');
-        if (app && heroSection) {
-            if (r === 'user') {
-                heroSection.parentNode.insertBefore(app, heroSection.nextSibling);
-            } else {
-                document.body.appendChild(app);
+            if (error) {
+                console.error('Profile fetch failed:', error);
+                return null;
             }
+
+            if (profile) return profile;
+
+            const fullName = (user.user_metadata && user.user_metadata.full_name) || '';
+            const requestedRole = normalizeRole((user.user_metadata && user.user_metadata.role) || 'user');
+
+            const { data: inserted, error: insertError } = await supabase
+                .from('profiles')
+                .insert({
+                    user_id: user.id,
+                    email: user.email,
+                    full_name: fullName,
+                    role: requestedRole
+                })
+                .select('user_id, email, full_name, role')
+                .single();
+
+            if (insertError) {
+                console.error('Profile create failed:', insertError);
+                return null;
+            }
+
+            return inserted;
+        } catch (err) {
+            console.error('Profile resolve error:', err);
+            return null;
+        }
+    }
+
+    async function persistUserRole(role) {
+        const user = window.__safesphere_auth_user;
+        if (!user) return;
+
+        const { error } = await supabase
+            .from('profiles')
+            .update({ role: normalizeRole(role) })
+            .eq('user_id', user.id);
+
+        if (error) {
+            console.error('Role update failed:', error);
+            Toast.show('Could not save role. Check RLS policies.', 'error');
+        }
+    }
+
+    function ensureRoleSwitcher(currentRole = 'user') {
+        if (!roleSwitcher) {
+            const container = document.createElement('div');
+            container.id = 'role-switcher';
+            container.className = 'role-switcher';
+
+            const label = document.createElement('label');
+            label.className = 'role-switcher-label';
+            label.textContent = 'Role:';
+            container.appendChild(label);
+
+            const select = document.createElement('select');
+            select.className = 'role-switcher-select';
+            APP_ROLES.forEach(r => {
+                const opt = document.createElement('option');
+                opt.value = r;
+                const icons = { user: 'User', guardian: 'Guardian', police: 'Police' };
+                opt.textContent = `${icons[r]} Dashboard`;
+                select.appendChild(opt);
+            });
+
+            select.addEventListener('change', async (e) => {
+                const newRole = normalizeRole(e.target.value);
+                await window.setRole(newRole, { persistRemote: true });
+                Toast.show(`Switched to ${newRole.toUpperCase()} role`, 'info', 2000);
+                setTimeout(() => window.scrollTo(0, 0), 100);
+            });
+
+            container.appendChild(select);
+            document.body.appendChild(container);
+            roleSwitcher = { container, select };
         }
 
-        loadRolePage(r, { role: r });
+        roleSwitcher.select.value = normalizeRole(currentRole);
+    }
+
+    function removeRoleSwitcher() {
+        if (roleSwitcher && roleSwitcher.container) {
+            roleSwitcher.container.remove();
+        }
+        roleSwitcher = null;
+    }
+
+    const AuthPage = {
+        render(mode = 'signin') {
+            const app = document.getElementById('app');
+            if (!app) return;
+
+            app.innerHTML = `
+                <div class="auth-shell">
+                    <div class="auth-card">
+                        <div class="auth-tabs">
+                            <button class="auth-tab ${mode === 'signin' ? 'active' : ''}" data-auth-mode="signin">Sign In</button>
+                            <button class="auth-tab ${mode === 'signup' ? 'active' : ''}" data-auth-mode="signup">Sign Up</button>
+                        </div>
+
+                        <form id="auth-form" class="auth-form">
+                            <input type="email" id="auth-email" placeholder="Email" required>
+                            <input type="password" id="auth-password" placeholder="Password (min 6 chars)" minlength="6" required>
+
+                            <input type="text" id="auth-name" placeholder="Full Name" ${mode === 'signup' ? '' : 'style="display:none;"'}>
+                            <select id="auth-role" ${mode === 'signup' ? '' : 'style="display:none;"'}>
+                                <option value="user">User</option>
+                                <option value="guardian">Guardian</option>
+                                <option value="police">Police</option>
+                            </select>
+
+                            <button type="submit" id="auth-submit" class="auth-submit">
+                                ${mode === 'signin' ? 'Sign In' : 'Create Account'}
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            `;
+
+            ensureAppContainerPlacement('user');
+
+            const tabs = app.querySelectorAll('.auth-tab');
+            const form = app.querySelector('#auth-form');
+            const nameInput = app.querySelector('#auth-name');
+            const roleSelect = app.querySelector('#auth-role');
+            const submitBtn = app.querySelector('#auth-submit');
+
+            tabs.forEach(tab => {
+                tab.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    this.render(tab.dataset.authMode);
+                });
+            });
+
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                const email = app.querySelector('#auth-email').value.trim();
+                const password = app.querySelector('#auth-password').value;
+                const fullName = nameInput.value.trim();
+                const role = normalizeRole(roleSelect.value);
+
+                submitBtn.disabled = true;
+                submitBtn.textContent = mode === 'signin' ? 'Signing In...' : 'Creating Account...';
+
+                try {
+                    if (mode === 'signin') {
+                        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+                        if (error) throw error;
+                        if (data && data.session && data.session.user) {
+                            await AuthFlow.handleSignedInUser(data.session.user);
+                        }
+                    } else {
+                        const { data, error } = await supabase.auth.signUp({
+                            email,
+                            password,
+                            options: {
+                                data: {
+                                    full_name: fullName,
+                                    role
+                                }
+                            }
+                        });
+
+                        if (error) throw error;
+
+                        if (data && data.session && data.session.user) {
+                            await AuthFlow.handleSignedInUser(data.session.user);
+                        } else {
+                            Toast.show('Signup successful. Check your email to verify and sign in.', 'success', 5000);
+                            this.render('signin');
+                        }
+                    }
+                } catch (err) {
+                    console.error('Auth failed:', err);
+                    Toast.show(err.message || 'Authentication failed', 'error');
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = mode === 'signin' ? 'Sign In' : 'Create Account';
+                }
+            });
+        }
     };
 
-    // Role switch UI
-    (function createRoleSwitcher() {
-        const roles = ['user', 'guardian', 'police'];
-        const container = document.createElement('div');
-        container.id = 'role-switcher';
-        container.className = 'role-switcher';
+    const AuthFlow = {
+        async handleSignedInUser(user) {
+            window.__safesphere_auth_user = user;
 
-        const label = document.createElement('label');
-        label.className = 'role-switcher-label';
-        label.textContent = '🔄 Role:';
-        container.appendChild(label);
+            const profile = await fetchOrCreateProfile(user);
+            window.__safesphere_profile = profile || null;
+            const role = normalizeRole((profile && profile.role) || localStorage.getItem('safesphere_role') || 'user');
 
-        const select = document.createElement('select');
-        select.className = 'role-switcher-select';
-        roles.forEach(r => {
-            const opt = document.createElement('option');
-            opt.value = r;
-            const icons = { user: '👤', guardian: '🛡️', police: '🚔' };
-            opt.textContent = `${icons[r] || ''} ${r.charAt(0).toUpperCase() + r.slice(1)}`;
-            select.appendChild(opt);
-        });
+            wireProfileButton();
+            await window.setRole(role, { persistRemote: false });
 
-        const currentRole = 'user';
-        select.value = currentRole;
+            Toast.show(`Welcome ${profile && profile.full_name ? profile.full_name : 'back'}!`, 'success', 2000);
+        },
 
-        select.addEventListener('change', (e) => {
-            const newRole = e.target.value;
-            window.setRole(newRole);
-            Toast.show(`Switched to ${newRole.toUpperCase()} role`, 'info', 2000);
-            // Scroll to top when switching roles
-            setTimeout(() => window.scrollTo(0, 0), 100);
-        });
+        async handleSignOut() {
+            if (window.__safesphere_current_page && window.__safesphere_current_page.teardown) {
+                try { window.__safesphere_current_page.teardown(); } catch (e) {}
+            }
+            window.__safesphere_auth_user = null;
+            window.__safesphere_profile = null;
+            removeRoleSwitcher();
+            wireProfileButton();
+            AuthPage.render('signin');
+        },
 
-        container.appendChild(select);
-        document.body.appendChild(container);
-    })();
+        async bootstrap() {
+            wireProfileButton();
 
-    // Determine role: prefer body[data-role] then localStorage, default 'user'
-    const role = 'user';
-    loadRolePage(role, { role });
+            const { data, error } = await supabase.auth.getSession();
+            if (error) {
+                console.error('Session read failed:', error);
+            }
+
+            if (data && data.session && data.session.user) {
+                await this.handleSignedInUser(data.session.user);
+            } else {
+                await this.handleSignOut();
+            }
+
+            supabase.auth.onAuthStateChange(async (event, session) => {
+                if (event === 'SIGNED_OUT') {
+                    await this.handleSignOut();
+                    Toast.show('Signed out successfully', 'info');
+                }
+
+                if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && session && session.user) {
+                    await this.handleSignedInUser(session.user);
+                }
+            });
+        }
+    };
+
+    // Expose loader and setter globally for console/tools
+    window.loadRolePage = loadRolePage;
+    window.setRole = async (r, options = { persistRemote: true }) => {
+        const nextRole = normalizeRole(r);
+        localStorage.setItem('safesphere_role', nextRole);
+        document.body.dataset.role = nextRole;
+
+        ensureAppContainerPlacement(nextRole);
+        if (options.persistRemote) {
+            await persistUserRole(nextRole);
+        }
+
+        await loadRolePage(nextRole, { role: nextRole });
+
+        if (roleSwitcher && roleSwitcher.select) {
+            roleSwitcher.select.value = nextRole;
+        }
+    };
+
+    function wireProfileButton() {
+        const profileBtn = document.querySelector('.profile-btn');
+        const profileText = profileBtn ? profileBtn.querySelector('.profile-text') : null;
+
+        if (!profileBtn) return;
+
+        const user = window.__safesphere_auth_user;
+        if (user) {
+            profileBtn.title = `Signed in as ${user.email || 'user'}. Click to logout.`;
+            if (profileText) profileText.textContent = 'Logout';
+            profileBtn.onclick = async () => {
+                const { error } = await supabase.auth.signOut();
+                if (error) {
+                    Toast.show(error.message || 'Logout failed', 'error');
+                }
+                if(Role == 'User'){
+                    VoiceSecurity.init();
+                    console.log('✅ Voice Security ready');
+                }
+            };
+        } else {
+            profileBtn.title = 'Login to continue';
+            if (profileText) profileText.textContent = 'Login';
+            profileBtn.onclick = () => {
+                AuthPage.render('signin');
+                const app = document.getElementById('app');
+                if (app) app.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            };
+        }
+    }
+
+    AuthFlow.bootstrap();
 
     console.log('✅ SafeSphere online!');
 } catch (error) {
@@ -2548,9 +2907,3 @@ try {
 // ============================================
 // SERVICE WORKER (Optional PWA support)
 // ============================================
-
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        // Service worker registration can be added here if needed
-    });
-}
