@@ -918,12 +918,15 @@ class ActionHandler {
 // ============================================
 
 class VoiceSecurity {
+    static isActive = true;
+    
     static init() {
         if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
             console.warn('Voice SOS: Web Speech API not supported in this browser.');
             return;
         }
 
+        VoiceSecurity.isActive = true;
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         const recognition = new SpeechRecognition();
         recognition.continuous = true;
@@ -946,6 +949,7 @@ class VoiceSecurity {
         };
 
         recognition.onerror = (event) => {
+            if (!VoiceSecurity.isActive) return;
             if (event.error === 'no-speech') return;
             console.error('Voice SOS Error:', event.error);
             if (event.error === 'not-allowed') {
@@ -955,11 +959,15 @@ class VoiceSecurity {
         };
 
         recognition.onend = () => {
-            console.log('🎙️ Voice SOS: Session ended. Restarting...');
-            try {
-                recognition.start();
-            } catch (e) {
-                // Ignore errors if already started
+            if (VoiceSecurity.isActive) {
+                console.log('🎙️ Voice SOS: Session ended. Restarting...');
+                try {
+                    recognition.start();
+                } catch (e) {
+                    // Ignore errors if already started
+                }
+            } else {
+                console.log('🎙️ Voice SOS: Stopped by user.');
             }
         };
 
@@ -973,6 +981,18 @@ class VoiceSecurity {
         
         window.voiceSecurity = recognition;
     }
+    static break() {
+        VoiceSecurity.isActive = false;
+        if (window.voiceSecurity) {
+            try {
+                window.voiceSecurity.abort();
+            } catch (e) {
+                console.error('Error aborting voice recognition:', e);
+            }
+            console.log('🎙️ Voice SOS: Microphone aborted on sign out');
+        }
+    }
+
 }
 
 // ============================================
@@ -1186,12 +1206,6 @@ try {
                     </main>
 
                     <!-- Bottom Navigation -->
-                    <nav class="bottom-nav">
-                        <button class="nav-btn nav-btn-active">🏠</button>
-                        <button class="nav-btn">📍</button>
-                        <button class="nav-btn">👥</button>
-                        <button class="nav-btn">🎤</button>
-                    </nav>
                 </div>
             `;
 
@@ -1875,19 +1889,6 @@ try {
 
             app.innerHTML = `
                 <div class="police-dashboard-wrapper">
-                    <!-- Sidebar Navigation -->
-                    <nav class="police-sidebar">
-                        <div class="sidebar-logo">🛡️</div>
-                        <div class="sidebar-icons">
-                            <button class="nav-icon active">📡</button>
-                            <button class="nav-icon">📍</button>
-                            <button class="nav-icon">👥</button>
-                            <button class="nav-icon">📊</button>
-                        </div>
-                        <div class="sidebar-profile">
-                            <img src="https://ui-avatars.com/api/?name=Officer&background=0D8ABC&color=fff" alt="Officer" />
-                        </div>
-                    </nav>
 
                     <!-- Main Content -->
                     <main class="police-main">
@@ -2810,6 +2811,7 @@ try {
         },
 
         async handleSignOut() {
+            VoiceSecurity.break();
             if (window.__safesphere_current_page && window.__safesphere_current_page.teardown) {
                 try { window.__safesphere_current_page.teardown(); } catch (e) {}
             }
@@ -2880,10 +2882,6 @@ try {
                 const { error } = await supabase.auth.signOut();
                 if (error) {
                     Toast.show(error.message || 'Logout failed', 'error');
-                }
-                if(Role == 'User'){
-                    VoiceSecurity.init();
-                    console.log('✅ Voice Security ready');
                 }
             };
         } else {

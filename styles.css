@@ -3079,6 +3079,7 @@ body[data-role="police"] .main-content {
     padding: 24px;
     border: 1px solid var(--slate-100);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
+    display: none;
 }
 
 .logs-header {
